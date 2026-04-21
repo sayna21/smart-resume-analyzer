@@ -1,43 +1,58 @@
-🚀 Smart Resume Analyzer
-📌 Overview
+# 🚀 Smart Resume Analyzer
 
-Smart Resume Analyzer is an AI-powered web backend system that analyzes resumes (PDF format) and extracts key information such as skills, experience, and job role fit. It also compares resumes with job descriptions using machine learning techniques to provide match scores and improvement suggestions.
+## 📌 Overview
+Smart Resume Analyzer is an AI-powered backend system that analyzes resumes (PDF format) and extracts key information such as skills, experience, and job role fit.
 
-✨ Features
-📄 PDF Resume Parsing (using pdfplumber)
-🧠 Skill Extraction using NLP (spaCy + keyword matching)
-📊 Resume–Job Matching (TF-IDF + Cosine Similarity + Jaccard Similarity)
-📈 Match Percentage & Recommendation System
-⚠️ Skill Gap Analysis
-💡 Personalized Suggestions for improvement
-🗂️ Categorized Skills (Programming, Web, Database, etc.)
-⚡ FastAPI backend with interactive Swagger UI
-🧠 Algorithms Used
-Algorithm	Purpose	Weight
-TF-IDF + Cosine Similarity	Semantic matching of resume & job description	70%
-Jaccard Similarity	Skill overlap comparison	30%
-spaCy NLP	Entity & skill extraction	Supplementary
-🛠️ Tech Stack
-Backend: FastAPI
-Language: Python
-NLP: spaCy
-ML: Scikit-learn
-PDF Processing: pdfplumber
-Database: MongoDB (optional)
-Server: Uvicorn
-📁 Project Structure
+It also compares resumes with job descriptions using machine learning techniques to provide **match scores and improvement suggestions**.
+
+---
+
+## ✨ Features
+- 📄 PDF Resume Parsing (pdfplumber)
+- 🧠 Skill Extraction using NLP (spaCy + keyword matching)
+- 📊 Resume–Job Matching (TF-IDF + Cosine + Jaccard)
+- 📈 Match Percentage & Recommendation System
+- ⚠️ Skill Gap Analysis
+- 💡 Personalized Suggestions
+- 🗂️ Categorized Skills (Programming, Web, Database, etc.)
+- ⚡ FastAPI backend with Swagger UI
+
+---
+
+## 🧠 Algorithms Used
+
+| Algorithm | Purpose | Weight |
+|----------|--------|--------|
+| TF-IDF + Cosine Similarity | Semantic matching | 70% |
+| Jaccard Similarity | Skill overlap | 30% |
+| spaCy NLP | Entity & skill extraction | Supplementary |
+
+---
+
+## 🛠️ Tech Stack
+- **Backend:** FastAPI  
+- **Language:** Python  
+- **NLP:** spaCy  
+- **ML:** Scikit-learn  
+- **PDF Processing:** pdfplumber  
+- **Database:** MongoDB (optional)  
+- **Server:** Uvicorn  
+
+---
+
+## 📁 Project Structure
 resume_analyzer/
 │
 ├── app/
-│   ├── __init__.py
-│   └── main.py
+│ ├── init.py
+│ └── main.py
 │
 ├── utils/
-│   ├── __init__.py
-│   ├── skill_extractor.py
-│   ├── job_matcher.py
-│   ├── pdf_reader.py
-│   └── database.py
+│ ├── init.py
+│ ├── skill_extractor.py
+│ ├── job_matcher.py
+│ ├── pdf_reader.py
+│ └── database.py
 │
 ├── requirements.txt
 ├── .env.example
@@ -45,14 +60,19 @@ resume_analyzer/
 ├── frontend.html
 └── README.md
 
-⚙️ Installation & Setup
-1️⃣ Clone the repository
-git clone <your-repo-link>
-cd resume_analyzer
+
+---
+
+## ⚙️ Installation & Setup
+
+### 1️⃣ Clone repository
+```bash
+git clone https://github.com/sayna21/smart-resume-analyzer.git
+cd smart-resume-analyzer
 
 2️⃣ Create virtual environment
 python -m venv venv
-venv\Scripts\activate   # Windows
+venv\Scripts\activate
 
 3️⃣ Install dependencies
 pip install -r requirements.txt
@@ -60,53 +80,46 @@ pip install -r requirements.txt
 4️⃣ Install spaCy model
 python -m spacy download en_core_web_sm
 
-5️⃣ Run the server
+5️⃣ Run server
 uvicorn app.main:app --reload
 
-## 🖥️ Frontend UI
-Open `frontend.html` directly in your browser (double-click it).
-Make sure the API is running first on port 8000.
-No extra setup needed — it connects to the API automatically.
+🖥️ Frontend UI
+Open frontend.html in browser
+Ensure backend is running on http://127.0.0.1:8000
 
 🌐 API Endpoints
 🔹 Analyze Resume
 
 POST /analyze
+Upload PDF → returns extracted skills & analysis
 
-Upload PDF
-Returns extracted skills, categories, experience
-🔹 Match Resume with Job Description
+🔹 Match Resume with JD
 
 POST /analyze/match
+Upload PDF + job description → returns match score
 
-Upload PDF + job description
-Returns match score, recommendation, skill gap
-
-🔹 Get Roles
-GET /roles
-Returns supported job roles
-
-🔹 Get Analysis by ID
-GET /analysis/{analysis_id}
-
-🔹 Health Check
-GET /health
-
-🔹 Stats
-GET /stats
+🔹 Other APIs
+GET /roles → supported roles
+GET /analysis/{analysis_id} → fetch result
+GET /health → server status
+GET /stats → analytics
 
 🚀 Future Improvements
-🌐 🌐 React Frontend (upgrade current HTML UI)
+🌐 React Frontend
 ☁️ Deployment (Render / AWS)
-🤖 Advanced ML models for better matching
+🤖 Advanced ML models
 📊 Dashboard analytics
 
-💼 Use Case
+
+💼 Use Cases
 Students preparing for internships
 Resume screening automation
-HR tech applications
+HR tech platforms
 
-📖 Interactive API Docs available at: http://localhost:8000/docs
+📖 API Docs
+
+👉 http://localhost:8000/docs
 
 👨‍💻 Author
+
 Sayna Kumari
