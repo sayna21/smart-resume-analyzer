@@ -8,6 +8,7 @@
 import uuid
 import time
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Query
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
 
@@ -64,6 +65,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+@app.get("/")
+def serve_frontend():
+    return FileResponse("frontend.html")
 
 
 # ─────────────────────────────────────────────────────────────
