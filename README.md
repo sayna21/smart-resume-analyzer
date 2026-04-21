@@ -9,12 +9,19 @@ It also compares resumes with job descriptions using machine learning techniques
 
 ## ✨ Features
 - 📄 PDF Resume Parsing (pdfplumber)
+
 - 🧠 Skill Extraction using NLP (spaCy + keyword matching)
+
 - 📊 Resume–Job Matching (TF-IDF + Cosine + Jaccard)
+
 - 📈 Match Percentage & Recommendation System
+
 - ⚠️ Skill Gap Analysis
+
 - 💡 Personalized Suggestions
+
 - 🗂️ Categorized Skills (Programming, Web, Database, etc.)
+
 - ⚡ FastAPI backend with Swagger UI
 
 ---
