@@ -42,6 +42,7 @@ resume_analyzer/
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
+├── frontend.html
 └── README.md
 
 ⚙️ Installation & Setup
@@ -61,6 +62,11 @@ python -m spacy download en_core_web_sm
 
 5️⃣ Run the server
 uvicorn app.main:app --reload
+
+## 🖥️ Frontend UI
+Open `frontend.html` directly in your browser (double-click it).
+Make sure the API is running first on port 8000.
+No extra setup needed — it connects to the API automatically.
 
 🌐 API Endpoints
 🔹 Analyze Resume
@@ -90,7 +96,7 @@ GET /health
 GET /stats
 
 🚀 Future Improvements
-🌐 Frontend UI (React)
+🌐 🌐 React Frontend (upgrade current HTML UI)
 ☁️ Deployment (Render / AWS)
 🤖 Advanced ML models for better matching
 📊 Dashboard analytics
@@ -99,6 +105,8 @@ GET /stats
 Students preparing for internships
 Resume screening automation
 HR tech applications
+
+📖 Interactive API Docs available at: http://localhost:8000/docs
 
 👨‍💻 Author
 Sayna Kumari

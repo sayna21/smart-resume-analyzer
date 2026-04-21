@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Resume Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ─── TOKENS ─────────────────────────────────────────────── */
+:root{
+  --forest:   #1E3A1F;
+  --moss:     #3A6B2A;
+  --sage:     #6B9E5E;
+  --mist:     #C8DCBF;
+  --parchment:#F5F0E8;
+  --cream:    #FBF8F3;
+  --ink:      #1A1A18;
+  --graphite: #4A4A45;
+  --dust:     #9A9A90;
+  --paper:    #FFFFFF;
+  --red:      #C0392B;
+  --amber:    #C17B2A;
+  --sky:      #2A6FA8;
+  --r: 16px;
+  --shadow: 0 2px 12px rgba(30,58,31,.08), 0 1px 3px rgba(30,58,31,.05);
+  --shadow-lg: 0 8px 32px rgba(30,58,31,.12), 0 2px 8px rgba(30,58,31,.06);
+}
+
+/* ─── RESET & BASE ───────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--parchment);
+  color:var(--ink);
+  min-height:100vh;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* ─── BACKGROUND TEXTURE ─────────────────────────────────── */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 10% 20%, rgba(107,158,94,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 80%, rgba(58,107,42,.05) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+.app{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:2rem 1.25rem 4rem}
+
+/* ─── MASTHEAD ───────────────────────────────────────────── */
+.masthead{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:2.5rem;
+  padding-bottom:1.5rem;
+  border-bottom:1.5px solid var(--mist);
+}
+.masthead-left{}
+.wordmark{
+  font-family:'DM Serif Display',serif;
+  font-size:32px;
+  color:var(--forest);
+  line-height:1.1;
+  margin-bottom:4px;
+}
+.wordmark em{font-style:italic;color:var(--sage)}
+.masthead-sub{font-size:12px;color:var(--dust);font-weight:400;letter-spacing:.03em}
+.masthead-badge{
+  display:flex;flex-direction:column;align-items:flex-end;gap:6px;
+  margin-top:4px;
+}
+.tech-pill{
+  background:var(--forest);color:white;
+  font-family:'DM Mono',monospace;
+  font-size:10px;padding:3px 10px;border-radius:4px;letter-spacing:.04em;
+  display:inline-block;
+}
+
+/* ─── PANELS GRID ─────────────────────────────────────────── */
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:600px){.input-grid{grid-template-columns:1fr}}
+
+/* ─── CARD BASE ──────────────────────────────────────────── */
+.card{
+  background:var(--paper);
+  border-radius:var(--r);
+  border:1px solid rgba(200,220,191,.6);
+  box-shadow:var(--shadow);
+  padding:1.25rem;
+}
+.card-label{
+  font-size:10px;font-weight:600;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--moss);
+  margin-bottom:.75rem;display:flex;align-items:center;gap:6px;
+}
+.card-label::before{content:'';width:12px;height:2px;background:var(--sage);display:inline-block;border-radius:1px}
+
+/* ─── UPLOAD ZONE ─────────────────────────────────────────── */
+.upload-zone{
+  border:2px dashed var(--mist);
+  border-radius:12px;
+  padding:2rem 1rem;
+  text-align:center;
+  cursor:pointer;
+  transition:all .25s;
+  background:var(--cream);
+  position:relative;
+}
+.upload-zone:hover,.upload-zone.dragover{
+  border-color:var(--sage);
+  background:#F0F5EC;
+}
+.upload-zone input[type=file]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;
+}
+.upload-glyph{
+  font-size:36px;margin-bottom:.75rem;display:block;
+  filter:grayscale(.2);
+}
+.upload-zone h3{
+  font-family:'DM Serif Display',serif;
+  font-size:16px;color:var(--forest);margin-bottom:4px;
+}
+.upload-zone p{font-size:11px;color:var(--dust)}
+.file-chosen{
+  margin-top:.75rem;display:none;
+  background:var(--mist);color:var(--forest);
+  font-size:11px;font-weight:500;padding:5px 12px;
+  border-radius:20px;display:inline-flex;align-items:center;gap:6px;
+}
+.file-chosen.show{display:inline-flex}
+
+/* ─── JD TEXTAREA ────────────────────────────────────────── */
+.jd-textarea{
+  width:100%;border:1.5px solid var(--mist);
+  border-radius:10px;padding:.875rem 1rem;
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  color:var(--graphite);resize:vertical;min-height:140px;
+  background:var(--cream);outline:none;transition:border .2s;
+  line-height:1.7;
+}
+.jd-textarea:focus{border-color:var(--sage);background:white}
+.jd-textarea::placeholder{color:var(--dust)}
+.char-count{font-size:10px;color:var(--dust);text-align:right;margin-top:4px}
+
+/* ─── ANALYZE BUTTON ─────────────────────────────────────── */
+.analyze-btn{
+  width:100%;
+  background:linear-gradient(135deg,var(--forest) 0%,var(--moss) 100%);
+  color:white;border:none;
+  padding:14px;border-radius:12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:15px;font-weight:600;
+  cursor:pointer;letter-spacing:.02em;
+  transition:all .2s;
+  box-shadow:0 4px 16px rgba(30,58,31,.25);
+  margin-bottom:1.5rem;
+  position:relative;overflow:hidden;
+}
+.analyze-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),transparent);
+}
+.analyze-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(30,58,31,.3)}
+.analyze-btn:active{transform:translateY(0)}
+.analyze-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ─── SPINNER ────────────────────────────────────────────── */
+.spinner{display:none;width:20px;height:20px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── RESULTS AREA ───────────────────────────────────────── */
+#results{display:none;animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* ─── SCORE BANNER ───────────────────────────────────────── */
+.score-banner{
+  background:var(--forest);color:white;
+  border-radius:var(--r);padding:1.5rem;
+  margin-bottom:1rem;
+  display:grid;grid-template-columns:auto 1fr;gap:1.5rem;align-items:center;
+}
+.score-ring-wrap{position:relative;width:96px;height:96px;flex-shrink:0}
+.score-svg{width:96px;height:96px;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:rgba(255,255,255,.12);stroke-width:8}
+.ring-fill{fill:none;stroke:var(--sage);stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)}
+.score-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.score-big{
+  font-family:'DM Serif Display',serif;
+  font-size:26px;line-height:1;color:white;
+}
+.score-unit{font-size:11px;color:rgba(255,255,255,.5);margin-top:1px}
+.score-info{}
+.score-filename{
+  font-size:10px;font-family:'DM Mono',monospace;
+  color:rgba(255,255,255,.4);margin-bottom:4px;letter-spacing:.04em;
+}
+.score-rec{
+  font-family:'DM Serif Display',serif;
+  font-size:18px;line-height:1.2;margin-bottom:.75rem;
+}
+.score-meta{display:flex;gap:1.5rem;flex-wrap:wrap}
+.meta-item{text-align:center}
+.meta-val{font-size:16px;font-weight:600;color:var(--mist)}
+.meta-key{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px}
+
+/* ─── TABS ───────────────────────────────────────────────── */
+.tab-nav{
+  display:flex;gap:4px;margin-bottom:1rem;
+  background:var(--paper);border-radius:12px;
+  padding:4px;border:1px solid rgba(200,220,191,.6);
+  box-shadow:var(--shadow);
+}
+.tab-btn{
+  flex:1;padding:8px 4px;border:none;background:none;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  color:var(--dust);border-radius:8px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;
+}
+.tab-btn.active{background:var(--forest);color:white}
+.tab-btn:hover:not(.active){background:var(--cream);color:var(--graphite)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+/* ─── SKILL PILLS ────────────────────────────────────────── */
+.pills{display:flex;flex-wrap:wrap;gap:6px;margin-top:.5rem}
+.pill{
+  font-size:11px;font-weight:500;padding:4px 12px;
+  border-radius:20px;font-family:'DM Mono',monospace;
+  letter-spacing:.02em;
+}
+.pill-have{background:#EEF5E8;color:var(--forest);border:1px solid var(--mist)}
+.pill-miss{background:#FDEEED;color:var(--red);border:1px solid #F5C5C1}
+.pill-extra{background:#EBF3FB;color:var(--sky);border:1px solid #BDD6EF}
+
+/* ─── CATEGORY BARS ──────────────────────────────────────── */
+.cat-item{margin-bottom:.875rem}
+.cat-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.cat-name{font-size:12px;font-weight:500;color:var(--graphite)}
+.cat-skills{font-size:10px;color:var(--dust);font-family:'DM Mono',monospace}
+.bar-track{height:5px;background:var(--parchment);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--forest),var(--sage));transition:width 1s ease}
+
+/* ─── ROLE CARDS ─────────────────────────────────────────── */
+.role-list{display:flex;flex-direction:column;gap:8px}
+.role-item{
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:1rem;
+  padding:.875rem 1rem;
+  border-radius:10px;border:1px solid var(--mist);
+  background:var(--cream);
+  transition:all .15s;
+}
+.role-item:hover{border-color:var(--sage);background:white}
+.role-item-left{}
+.role-title{font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.role-bar-track{height:4px;background:var(--mist);border-radius:2px}
+.role-bar-fill{height:100%;border-radius:2px;background:var(--moss)}
+.role-missing{font-size:10px;color:var(--dust);margin-top:4px}
+.role-pct-badge{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;color:var(--forest);white-space:nowrap;
+}
+.role-item.top-match{
+  border-color:var(--moss);background:#F4F8F0;
+}
+.role-item.top-match .role-bar-fill{background:var(--forest)}
+
+/* ─── SUGGESTIONS ────────────────────────────────────────── */
+.suggestion-list{display:flex;flex-direction:column;gap:0}
+.sug-item{
+  display:flex;gap:.875rem;padding:.875rem 0;
+  border-bottom:1px solid var(--parchment);
+}
+.sug-item:last-child{border:none}
+.sug-num{
+  width:24px;height:24px;border-radius:8px;
+  background:var(--forest);color:white;
+  font-size:11px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;font-family:'DM Mono',monospace;
+}
+.sug-body{}
+.sug-title{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px}
+.sug-desc{font-size:12px;color:var(--graphite);line-height:1.6}
+.sug-tag{
+  display:inline-block;font-size:10px;
+  background:var(--parchment);color:var(--graphite);
+  padding:2px 8px;border-radius:4px;margin-top:4px;
+  font-family:'DM Mono',monospace;
+}
+
+/* ─── CONTACT ─────────────────────────────────────────────── */
+.contact-grid{display:flex;flex-direction:column;gap:0}
+.contact-row{
+  display:flex;align-items:center;gap:.75rem;
+  padding:.625rem 0;border-bottom:1px solid var(--parchment);
+  font-size:13px;color:var(--graphite);
+}
+.contact-row:last-child{border:none}
+.contact-icon{
+  width:28px;height:28px;border-radius:8px;background:var(--parchment);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;flex-shrink:0;
+}
+.contact-val{font-family:'DM Mono',monospace;font-size:12px}
+.contact-empty{
+  font-size:12px;color:var(--dust);font-style:italic;padding:.5rem 0;
+}
+
+/* ─── GAP SPLIT ──────────────────────────────────────────── */
+.gap-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:540px){.gap-grid{grid-template-columns:1fr}}
+
+/* ─── ERROR TOAST ────────────────────────────────────────── */
+.toast{
+  position:fixed;top:1.5rem;right:1.5rem;z-index:999;
+  background:var(--red);color:white;
+  padding:.75rem 1.25rem;border-radius:10px;
+  font-size:13px;font-weight:500;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  transform:translateY(-10px);opacity:0;
+  transition:all .3s;pointer-events:none;
+  max-width:340px;
+}
+.toast.show{transform:none;opacity:1}
+
+/* ─── EXPERIENCE BADGE ───────────────────────────────────── */
+.exp-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--parchment);border:1px solid var(--mist);
+  border-radius:20px;padding:4px 12px;
+  font-size:12px;color:var(--graphite);
+}
+.exp-badge strong{color:var(--forest)}
+
+/* ─── EMPTY STATE ────────────────────────────────────────── */
+.empty{
+  text-align:center;padding:2.5rem 1rem;
+  color:var(--dust);font-size:13px;
+}
+.empty-icon{font-size:32px;margin-bottom:.5rem;display:block;opacity:.4}
+
+/* ─── DIVIDER ────────────────────────────────────────────── */
+.divider{border:none;border-top:1px solid var(--parchment);margin:1rem 0}
+
+/* ─── SECTION HEADER ─────────────────────────────────────── */
+.section-hd{
+  display:flex;align-items:baseline;justify-content:space-between;
+  margin-bottom:.875rem;
+}
+.section-hd h4{
+  font-family:'DM Serif Display',serif;
+  font-size:15px;color:var(--forest);
+}
+.section-hd span{font-size:11px;color:var(--dust)}
+
+/* ─── FOOTER ─────────────────────────────────────────────── */
+.footer{
+  margin-top:3rem;padding-top:1.5rem;
+  border-top:1px solid var(--mist);
+  text-align:center;
+  font-size:11px;color:var(--dust);
+  font-family:'DM Mono',monospace;
+  letter-spacing:.04em;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── MASTHEAD ── -->
+  <div class="masthead">
+    <div class="masthead-left">
+      <div class="wordmark">Resume <em>Analyzer</em></div>
+      <div class="masthead-sub">AI-powered · NLP skill extraction · Job matching</div>
+    </div>
+    <div class="masthead-badge">
+      <span class="tech-pill">spaCy NLP</span>
+      <span class="tech-pill">TF-IDF + Jaccard</span>
+      <span class="tech-pill">FastAPI v1.0</span>
+    </div>
+  </div>
+
+  <!-- ── INPUT SECTION ── -->
+  <div class="input-grid">
+
+    <!-- Upload -->
+    <div class="card">
+      <div class="card-label">Resume PDF</div>
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="resumeFile" accept=".pdf" onchange="onFileChosen(this)"/>
+        <span class="upload-glyph">📄</span>
+        <h3>Drop PDF here</h3>
+        <p>or click to browse · max 5 MB</p>
+        <div class="file-chosen" id="fileChosen">
+          <span>📎</span><span id="fileName">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- JD -->
+    <div class="card">
+      <div class="card-label">Job Description <span style="color:var(--dust);font-weight:400;font-size:10px;text-transform:none">(optional)</span></div>
+      <textarea class="jd-textarea" id="jdText"
+        placeholder="Paste the full job description to get your match %, skill gap, and personalized suggestions…"
+        oninput="updateCharCount(this)"></textarea>
+      <div class="char-count" id="charCount">0 characters</div>
+    </div>
+
+  </div>
+
+  <button class="analyze-btn" id="analyzeBtn" onclick="analyze()">
+    <span id="btnLabel">Analyze Resume →</span>
+    <div class="spinner" id="spinner"></div>
+  </button>
+
+  <!-- ── RESULTS ── -->
+  <div id="results">
+
+    <!-- Score Banner -->
+    <div class="score-banner" id="scoreBanner">
+      <div class="score-ring-wrap">
+        <svg class="score-svg" viewBox="0 0 96 96">
+          <circle class="ring-bg" cx="48" cy="48" r="40"/>
+          <circle class="ring-fill" id="ringFill" cx="48" cy="48" r="40"
+            stroke-dasharray="251.3"
+            stroke-dashoffset="251.3"/>
+        </svg>
+        <div class="score-center">
+          <div class="score-big" id="scoreBig">—</div>
+          <div class="score-unit">match</div>
+        </div>
+      </div>
+      <div class="score-info">
+        <div class="score-filename" id="scoreFilename">—</div>
+        <div class="score-rec" id="scoreRec">—</div>
+        <div class="score-meta" id="scoreMeta"></div>
+      </div>
+    </div>
+
+    <!-- Tab nav -->
+    <div class="tab-nav">
+      <button class="tab-btn active" onclick="switchTab('skills',this)">Skills Found</button>
+      <button class="tab-btn" onclick="switchTab('gap',this)">Skill Gap</button>
+      <button class="tab-btn" onclick="switchTab('roles',this)">Role Matches</button>
+      <button class="tab-btn" onclick="switchTab('suggest',this)">Suggestions</button>
+      <button class="tab-btn" onclick="switchTab('contact',this)">Contact</button>
+    </div>
+
+    <!-- SKILLS TAB -->
+    <div class="tab-pane active" id="pane-skills">
+      <div class="card">
+        <div class="section-hd">
+          <h4>Skills by Category</h4>
+          <span id="totalSkills">—</span>
+        </div>
+        <div id="categoryBars"></div>
+        <div class="divider"></div>
+        <div class="section-hd"><h4>All Extracted Skills</h4></div>
+        <div class="pills" id="allSkillsPills"></div>
+      </div>
+    </div>
+
+    <!-- GAP TAB -->
+    <div class="tab-pane" id="pane-gap">
+      <div class="gap-grid">
+        <div class="card">
+          <div class="card-label">✅ You Have (Matched)</div>
+          <div class="pills" id="matchedPills">
+            <div class="empty"><span class="empty-icon">—</span>Analyze with a job description to see matches</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-label">❌ Missing Skills</div>
+          <div class="pills" id="missingPills">
+            <div class="empty"><span class="empty-icon">—</span>Paste a job description first</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">💡 Bonus Skills (You Have Extra)</div>
+        <div class="pills" id="extraPills"></div>
+      </div>
+    </div>
+
+    <!-- ROLES TAB -->
+    <div class="tab-pane" id="pane-roles">
+      <div class="card">
+        <div class="section-hd"><h4>Best Matching Roles</h4><span>based on your skills</span></div>
+        <div class="role-list" id="roleList"></div>
+      </div>
+    </div>
+
+    <!-- SUGGESTIONS TAB -->
+    <div class="tab-pane" id="pane-suggest">
+      <div class="card">
+        <div class="section-hd"><h4>Improvement Suggestions</h4></div>
+        <div class="suggestion-list" id="suggestionList">
+          <div class="empty"><span class="empty-icon">📝</span>Analyze with a job description to get suggestions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTACT TAB -->
+    <div class="tab-pane" id="pane-contact">
+      <div class="card">
+        <div class="section-hd"><h4>Detected Contact Info</h4></div>
+        <div class="contact-grid" id="contactGrid"></div>
+        <div class="divider"></div>
+        <div class="section-hd" style="margin-top:.75rem"><h4>Experience</h4></div>
+        <div id="expInfo"></div>
+      </div>
+    </div>
+
+  </div><!-- /results -->
+
+  <div class="footer">
+    Smart Resume Analyzer · FastAPI + spaCy + TF-IDF · 
+    <a href="http://localhost:8000/docs" target="_blank" style="color:var(--sage);text-decoration:none">API Docs ↗</a>
+  </div>
+
+</div><!-- /app -->
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── CONFIG ─────────────────────────────────────────── */
+const API = 'http://localhost:8000';
+
+/* ── HELPERS ─────────────────────────────────────────── */
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+function onFileChosen(input){
+  const f=input.files[0];
+  if(!f)return;
+  document.getElementById('fileName').textContent=f.name;
+  document.getElementById('fileChosen').classList.add('show');
+}
+
+function updateCharCount(el){
+  document.getElementById('charCount').textContent=el.value.length+' characters';
+}
+
+function setLoading(on){
+  const btn=document.getElementById('analyzeBtn');
+  const lbl=document.getElementById('btnLabel');
+  const sp=document.getElementById('spinner');
+  btn.disabled=on;
+  lbl.style.display=on?'none':'block';
+  sp.style.display=on?'block':'none';
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-'+name).classList.add('active');
+}
+
+/* ── SCORE RING ──────────────────────────────────────── */
+function setRing(pct){
+  const circ=251.3;
+  const offset=circ-(circ*pct/100);
+  const ring=document.getElementById('ringFill');
+  ring.style.strokeDashoffset=circ; // reset
+  setTimeout(()=>ring.style.strokeDashoffset=offset,50);
+  document.getElementById('scoreBig').textContent=pct+'%';
+}
+
+/* ── PILLS BUILDER ───────────────────────────────────── */
+function buildPills(container,skills,cls){
+  if(!skills||skills.length===0){
+    container.innerHTML='<div class="empty"><span class="empty-icon">—</span>None found</div>';
+    return;
+  }
+  container.innerHTML=skills.map(s=>`<span class="pill ${cls}">${s}</span>`).join('');
+}
+
+/* ── CATEGORY BARS ───────────────────────────────────── */
+function buildCategoryBars(byCategory,totalMax){
+  const el=document.getElementById('categoryBars');
+  if(!byCategory||Object.keys(byCategory).length===0){
+    el.innerHTML='<div class="empty">No categories found</div>';return;
+  }
+  const labels={
+    programming_languages:'Programming Languages',
+    web_frameworks:'Web Frameworks',
+    databases:'Databases',
+    cloud_devops:'Cloud & DevOps',
+    ai_ml:'AI / ML',
+    tools:'Tools',
+    methodologies:'Methodologies',
+    soft_skills:'Soft Skills',
+    nlp_extracted:'NLP Extracted'
+  };
+  const max=Math.max(...Object.values(byCategory).map(v=>v.length),1);
+  el.innerHTML=Object.entries(byCategory).map(([cat,skills])=>{
+    const label=labels[cat]||cat.replace(/_/g,' ');
+    const pct=Math.round((skills.length/max)*100);
+    return `<div class="cat-item">
+      <div class="cat-top">
+        <span class="cat-name">${label}</span>
+        <span class="cat-skills">${skills.join(', ')}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:0%" data-w="${pct}%"></div></div>
+    </div>`;
+  }).join('');
+  // Animate bars
+  setTimeout(()=>{
+    document.querySelectorAll('.bar-fill').forEach(b=>{b.style.width=b.dataset.w});
+  },100);
+}
+
+/* ── ROLE LIST ───────────────────────────────────────── */
+function buildRoles(roles){
+  const el=document.getElementById('roleList');
+  if(!roles||roles.length===0){el.innerHTML='<div class="empty">No roles found</div>';return;}
+  el.innerHTML=roles.map((r,i)=>{
+    const isTop=i===0;
+    const missing=r.missing_required&&r.missing_required.length>0
+      ? `Missing: ${r.missing_required.slice(0,3).join(', ')}${r.missing_required.length>3?'…':''}`:'';
+    return `<div class="role-item${isTop?' top-match':''}">
+      <div class="role-item-left">
+        <div class="role-title">${r.role}${isTop?' ⭐':''}</div>
+        <div class="role-bar-track">
+          <div class="role-bar-fill" style="width:0%" data-w="${r.match_percentage}%"></div>
+        </div>
+        ${missing?`<div class="role-missing">${missing}</div>`:''}
+      </div>
+      <div class="role-pct-badge">${r.match_percentage}%</div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{
+    document.querySelectorAll('.role-bar-fill').forEach(b=>{b.style.width=b.dataset.w});
+  },100);
+}
+
+/* ── SUGGESTIONS ─────────────────────────────────────── */
+function buildSuggestions(suggestions){
+  const el=document.getElementById('suggestionList');
+  if(!suggestions||suggestions.length===0){
+    el.innerHTML='<div class="empty"><span class="empty-icon">📝</span>No suggestions — your resume looks strong!</div>';
+    return;
+  }
+  el.innerHTML=suggestions.map((s,i)=>`
+    <div class="sug-item">
+      <div class="sug-num">${i+1}</div>
+      <div class="sug-body"><div class="sug-desc">${s}</div></div>
+    </div>`).join('');
+}
+
+/* ── CONTACT ─────────────────────────────────────────── */
+function buildContact(contact,expYears,pages){
+  const el=document.getElementById('contactGrid');
+  const icons={email:'✉',github:'',linkedin:'in',phone:'☎'};
+  const entries=Object.entries(contact||{});
+  if(entries.length===0){
+    el.innerHTML='<div class="contact-empty">No contact info detected in the PDF</div>';
+  } else {
+    el.innerHTML=entries.map(([k,v])=>
+      `<div class="contact-row">
+        <div class="contact-icon">${icons[k]||'◆'}</div>
+        <span class="contact-val">${v}</span>
+      </div>`
+    ).join('');
+  }
+  document.getElementById('expInfo').innerHTML=`
+    <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+      <div class="exp-badge">Experience: <strong>${expYears>0?expYears+' years':'Not specified'}</strong></div>
+      <div class="exp-badge">Pages: <strong>${pages}</strong></div>
+    </div>`;
+}
+
+/* ── SCORE BANNER ─────────────────────────────────────── */
+function buildScoreBanner(data){
+  const hasMatch=data.match_percentage!==undefined;
+  const pct=hasMatch?data.match_percentage:null;
+
+  document.getElementById('scoreFilename').textContent=
+    (data.filename||'resume.pdf').toUpperCase()+' · '+data.analysis_id;
+
+  if(hasMatch){
+    setRing(pct);
+    document.getElementById('scoreRec').textContent=data.recommendation||'—';
+
+    const meta=[];
+    if(data.tfidf_score!==undefined) meta.push({k:'TF-IDF',v:data.tfidf_score+'%'});
+    if(data.jaccard_score!==undefined) meta.push({k:'Jaccard',v:data.jaccard_score+'%'});
+    if(data.total_skills_found!==undefined||data.resume_skills)
+      meta.push({k:'Skills',v:(data.total_skills_found||data.resume_skills?.length||0)});
+    if(data.processing_time_ms!==undefined) meta.push({k:'ms',v:Math.round(data.processing_time_ms)});
+    document.getElementById('scoreMeta').innerHTML=meta.map(m=>
+      `<div class="meta-item"><div class="meta-val">${m.v}</div><div class="meta-key">${m.k}</div></div>`
+    ).join('');
+  } else {
+    // No JD mode — show skills count in ring
+    const skillCount=data.total_skills_found||0;
+    setRing(Math.min(skillCount*4,100));
+    document.getElementById('scoreBig').textContent=skillCount;
+    document.querySelector('.score-unit').textContent='skills';
+    document.getElementById('scoreRec').textContent=
+      'Best fit: '+(data.best_fit_role||'Generalist');
+    const meta=[];
+    if(data.pages) meta.push({k:'Pages',v:data.pages});
+    if(data.estimated_experience_years) meta.push({k:'Exp (yrs)',v:data.estimated_experience_years});
+    if(data.processing_time_ms) meta.push({k:'ms',v:Math.round(data.processing_time_ms)});
+    document.getElementById('scoreMeta').innerHTML=meta.map(m=>
+      `<div class="meta-item"><div class="meta-val">${m.v}</div><div class="meta-key">${m.k}</div></div>`
+    ).join('');
+  }
+}
+
+/* ── MAIN ANALYZE ────────────────────────────────────── */
+async function analyze(){
+  const fileInput=document.getElementById('resumeFile');
+  const jd=document.getElementById('jdText').value.trim();
+
+  if(!fileInput.files||!fileInput.files[0]){
+    showToast('Please upload a PDF resume first.');return;
+  }
+
+  setLoading(true);
+  const form=new FormData();
+  form.append('file',fileInput.files[0]);
+
+  let endpoint='/analyze';
+  if(jd.length>=50){
+    endpoint='/analyze/match';
+    form.append('job_description',jd);
+  }
+
+  try{
+    const res=await fetch(API+endpoint,{method:'POST',body:form});
+    if(!res.ok){
+      const err=await res.json();
+      showToast('Error: '+(err.detail||res.statusText));
+      setLoading(false);return;
+    }
+    const data=await res.json();
+    renderResults(data,jd.length>=50);
+  } catch(e){
+    showToast('Cannot reach API. Make sure uvicorn is running on port 8000.');
+    setLoading(false);
+  }
+}
+
+function renderResults(data,hasJD){
+  setLoading(false);
+  document.getElementById('results').style.display='block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+
+  // Score banner
+  buildScoreBanner(data);
+
+  // Skills tab
+  const byCategory=data.skills_by_category||{};
+  buildCategoryBars(byCategory);
+  const allSkills=data.all_skills||data.resume_skills||[];
+  document.getElementById('totalSkills').textContent=allSkills.length+' skills total';
+  buildPills(document.getElementById('allSkillsPills'),allSkills,'pill-have');
+
+  // Gap tab
+  if(hasJD&&data.skill_gap){
+    buildPills(document.getElementById('matchedPills'),data.skill_gap.matched_skills,'pill-have');
+    buildPills(document.getElementById('missingPills'),data.skill_gap.missing_skills,'pill-miss');
+    buildPills(document.getElementById('extraPills'),data.skill_gap.extra_skills||[],'pill-extra');
+  }
+
+  // Roles tab
+  buildRoles(data.top_role_matches||[]);
+
+  // Suggestions tab
+  buildSuggestions(data.suggestions||[]);
+
+  // Contact tab
+  buildContact(
+    data.contact_info||{},
+    data.estimated_experience_years||0,
+    data.pages||1
+  );
+}
+
+/* ── DRAG & DROP ─────────────────────────────────────── */
+const zone=document.getElementById('uploadZone');
+zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover')});
+zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+zone.addEventListener('drop',e=>{
+  e.preventDefault();zone.classList.remove('dragover');
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type==='application/pdf'){
+    document.getElementById('resumeFile').files=e.dataTransfer.files;
+    onFileChosen({files:[f]});
+  } else {showToast('Please drop a PDF file.');}
+});
+</script>
+</body>
+</html>
