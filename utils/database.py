@@ -15,7 +15,6 @@ load_dotenv()
 MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME   = os.getenv("DB_NAME",   "resume_analyzer")
 
-# ── Try to connect to MongoDB. If unavailable, use in-memory store ──
 _in_memory_store: Dict[str, Dict] = {}   # fallback storage
 _mongo_available = False
 _db = None
@@ -35,13 +34,7 @@ except Exception:
 # ─────────────────────────────────────────────────────────────
 
 async def save_analysis(analysis_id: str, data: Dict) -> bool:
-    """
-    Save a resume analysis result.
     
-    INTERVIEW EXPLANATION:
-    We add metadata (created_at, id) before saving.
-    In production: also save user_id for multi-tenant support.
-    """
     record = {
         "_id": analysis_id,
         "created_at": datetime.utcnow().isoformat(),
